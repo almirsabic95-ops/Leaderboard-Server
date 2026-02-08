@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard Admin</title>
+    <link rel="stylesheet" href="style.css"> </head>
+<body>
+    <div class="container">
+        <h1>🛠 Admin Panel</h1>
+
+        <div class="card">
+            <h2>🎮 Dodaj Igru</h2>
+            <input type="text" id="gameName" placeholder="Naziv igre">
+            <textarea id="gameContent" placeholder="Link ili HTML kod"></textarea>
+            <button id="btnIgra">Učitaj igru</button>
+        </div>
+
+        <div class="card">
+            <h2>📝 Dodaj Kviz</h2>
+            <input type="text" id="quizCat" placeholder="Kategorija">
+            <input type="text" id="quizUser" placeholder="Username">
+            <textarea id="quizQuestion" placeholder="Pitanje"></textarea>
+            <input type="text" id="quizOptions" placeholder="Odgovori (zarezom)">
+            <input type="text" id="quizCorrect" placeholder="Točan odgovor">
+            <button id="btnKviz">Spremi kviz</button>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
