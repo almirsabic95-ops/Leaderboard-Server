@@ -1,0 +1,20 @@
+const params = new URLSearchParams(window.location.search);
+const igraIme = params.get('igra').replace('.html', '');
+const kat = params.get('kat');
+
+document.getElementById('gameFrame').src = `/igre/${kat}/${params.get('igra')}`;
+
+async function ucitajTablicu() {
+    const res = await fetch('/api/statistika/dan'); // Ili tvoja putanja za bodove
+    const sviBodovi = await res.json();
+    
+    // Filtriraj bodove samo za ovu igru
+    const filtrirano = sviBodovi
+        .filter(b => b.igra === igraIme)
+        .sort((a, b) => b.bodovi - a.bodovi);
+
+    document.getElementById('scoreBody').innerHTML = filtrirano
+        .map(b => `<tr><td>${b.ime}</td><td>${b.bodovi}</td></tr>`)
+        .join('');
+}
+ucitajTablicu();

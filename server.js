@@ -1,54 +1,65 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = new Server(server);
+const PORT = 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
-app.use('/igre', express.static('games')); // Omogućava direktno otvaranje igara
+app.use(express.static('public')); 
+app.use('/igre', express.static('games'));
 
-// Osiguraj da mape postoje
-const mape = ['./public', './games', './data'];
-mape.forEach(m => { if (!fs.existsSync(m)) fs.mkdirSync(m); });
+// Učitavanje pitanja (Kreiraj pitanja.json u istom folderu)
+let pitanjaPodaci = {};
+if (fs.existsSync('./pitanja.json')) {
+    pitanjaPodaci = JSON.parse(fs.readFileSync('./pitanja.json', 'utf8'));
+}
 
-// --- POST RUTE (Spremanje podataka) ---
-
-app.post('/api/dodaj-igru', (req, res) => {
-    const { naziv, sadrzaj } = req.body;
-    const fileName = `${naziv.toLowerCase().replace(/ /g, '-')}.html`;
-    fs.writeFileSync(`./games/${fileName}`, sadrzaj);
-    res.json({ message: `Igra '${naziv}' je uspješno spremljena!` });
+// OSIGURAJ MAPE
+const potrebneMape = ['./games', './data/statistika'];
+potrebneMape.forEach(m => {
+    if (!fs.existsSync(m)) fs.mkdirSync(m, { recursive: true });
 });
 
-app.post('/api/dodaj-kviz', (req, res) => {
-    const kvizData = req.body;
-    const fileName = `${kvizData.kategorija.toLowerCase().replace(/ /g, '-')}.json`;
-    let postojeciPodaci = [];
-    if (fs.existsSync(`./data/${fileName}`)) {
-        postojeciPodaci = JSON.parse(fs.readFileSync(`./data/${fileName}`));
-    }
-    postojeciPodaci.push(kvizData);
-    fs.writeFileSync(`./data/${fileName}`, JSON.stringify(postojeciPodaci, null, 2));
-    res.json({ message: `Pitanje spremljeno u kategoriju ${kvizData.kategorija}!` });
+// SOCKET.IO LOGIKA ZA KVIZ
+io.on('connection', (socket) => {
+    console.log('Korisnik spojen');
+
+    socket.on('join_room', (soba) => {
+        socket.join(soba);
+    });
+
+    socket.on('slanje_odgovora', (data) => {
+        const { soba, ime, tekst } = data;
+        const kategorijaPitanja = pitanjaPodaci[soba];
+
+        if (kategorijaPitanja) {
+            // Provjera točnosti (mala slova i micanje razmaka)
+            const tocan = kategorijaPitanja.find(p => 
+                p.odgovor.toLowerCase().trim() === tekst.toLowerCase().trim()
+            );
+
+            if (tocan) {
+                io.to(soba).emit('obavijest', { 
+                    poruka: `BRAVO ${ime}! "${tekst}" je točan odgovor! ✅`,
+                    tip: 'tocno'
+                });
+            } else {
+                io.to(soba).emit('nova_poruka', { ime, tekst });
+            }
+        }
+    });
 });
 
-// --- NOVE GET RUTE (Čitanje podataka) ---
-
-app.get('/api/lista-igara', (req, res) => {
-    const files = fs.readdirSync('./games').filter(f => f.endsWith('.html'));
-    res.json(files);
+// API Rute koje si već imao
+app.get('/api/kategorije-igara', (req, res) => {
+    const mape = fs.readdirSync('./games', { withFileTypes: true })
+        .filter(d => d.isDirectory()).map(d => d.name);
+    res.json(mape);
 });
 
-app.get('/api/lista-kvizova', (req, res) => {
-    const files = fs.readdirSync('./data').filter(f => f.endsWith('.json'));
-    res.json(files);
-});
-
-// Ruta za dohvaćanje specifičnog kviza
-app.get('/api/kviz/:file', (req, res) => {
-    const data = fs.readFileSync(`./data/${req.params.file}`);
-    res.json(JSON.parse(data));
-});
-
-app.listen(PORT, () => console.log(`Server radi na http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`Rekvizit Server aktivan na portu ${PORT}`));

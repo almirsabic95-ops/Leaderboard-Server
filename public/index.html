@@ -1,78 +1,22 @@
-<!DOCTYPE html>
-<html lang="hr">
-<head>
-    <meta charset="UTF-8">
-    <title>Leaderboard Exhibition</title>
-    <style>
-        body { font-family: sans-serif; background: #1a1a2e; color: white; padding: 20px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #16213e; padding: 20px; border-radius: 10px; cursor: pointer; border: 1px solid #0f3460; }
-        .card:hover { background: #e94560; }
-        #display-area { margin-top: 30px; background: white; color: #333; padding: 30px; border-radius: 15px; display: none; }
-        .btn-ans { padding: 10px 20px; margin: 5px; cursor: pointer; background: #0f3460; color: white; border: none; border-radius: 5px; }
-        input { padding: 10px; width: 60%; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <h1>🎮 Moj Exhibition Panel</h1>
-    <div id="menu" class="grid"></div>
-    <div id="display-area"></div>
+async function ucitajSveIgre() {
+    // 1. Prvo dohvatimo sve kategorije (mape: sportska, logicke, itd.)
+    const resKat = await fetch('/api/kategorije-igara');
+    const kategorije = await resKat.json();
 
-    <script>
-        async function ucitajSve() {
-            const menu = document.getElementById('menu');
-            
-            // Učitaj Igre
-            const resIgre = await fetch('/api/lista-igara');
-            const igre = await resIgre.json();
-            igre.forEach(f => {
-                menu.innerHTML += `<div class="card" onclick="window.open('/igre/${f}')">🕹 Igra: ${f.replace('.html','')}</div>`;
-            });
+    const listaDiv = document.getElementById('lista-igara');
+    listaDiv.innerHTML = ""; 
 
-            // Učitaj Kvizove
-            const resKviz = await fetch('/api/lista-kvizova');
-            const kvizovi = await resKviz.json();
-            kvizovi.forEach(f => {
-                menu.innerHTML += `<div class="card" onclick="pokreniKviz('${f}')">📝 Kviz: ${f.replace('.json','')}</div>`;
-            });
-        }
+    // 2. Za svaku kategoriju dohvatimo igre unutar nje
+    for (const kat of kategorije) {
+        const resIgre = await fetch(`/api/lista-igara/${kat}`);
+        const igre = await resIgre.json();
 
-        async function pokreniKviz(file) {
-            const res = await fetch(`/api/kviz/${file}`);
-            const pitanja = await res.json();
-            prikaziPitanje(pitanja[0]); // Prikazuje prvo pitanje iz datoteke
-        }
-
-        function prikaziPitanje(q) {
-            const area = document.getElementById('display-area');
-            area.style.display = 'block';
-            let htmlOdgovora = "";
-
-            if (q.odgovori.length === 0) {
-                htmlOdgovora = `
-                    <input type="text" id="direct-ans" placeholder="Upiši odgovor...">
-                    <button class="btn-ans" onclick="provjeri('${q.tocan}', true)">Provjeri</button>
-                `;
-            } else {
-                htmlOdgovora = q.odgovori.map(o => `<button class="btn-ans" onclick="provjeri('${o}', false, '${q.tocan}')">${o}</button>`).join('');
-            }
-
-            area.innerHTML = `<h2>${q.pitanje}</h2><div>${htmlOdgovora}</div><div id="fb"></div>`;
-        }
-
-        function provjeri(odgovor, isInput, tocan = "") {
-            const fb = document.getElementById('fb');
-            let userAns = isInput ? document.getElementById('direct-ans').value : odgovor;
-            let correctAns = isInput ? tocan : tocan; // tocan se prosljedjuje u kliku
-            
-            if(userAns.toLowerCase().trim() === (isInput ? correctAns : odgovor).toLowerCase().trim()) {
-                fb.innerHTML = "<h3 style='color:green'>Točno! ✅</h3>";
-            } else {
-                fb.innerHTML = `<h3 style='color:red'>Netočno!</h3>`;
-            }
-        }
-
-        ucitajSve();
-    </script>
-</body>
-</html>
+        igre.forEach(igra => {
+            // Kreiramo link koji zna točnu putanju do podmape
+            const link = document.createElement('a');
+            link.href = `view-game.html?igra=${igra}&kat=${kat}`;
+            link.innerText = `${igra.replace('.html', '')} (${kat})`;
+            listaDiv.appendChild(link);
+        });
+    }
+}

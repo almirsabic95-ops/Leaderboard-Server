@@ -1,31 +1,25 @@
-<!DOCTYPE html>
-<html lang="hr">
-<head>
-    <meta charset="UTF-8">
-    <title>Leaderboard Admin</title>
-    <link rel="stylesheet" href="style.css"> </head>
-<body>
-    <div class="container">
-        <h1>🛠 Admin Panel</h1>
+<div class="card">
+    <h2>🚀 Brzo dodavanje igre</h2>
+    <input type="text" id="gameName" placeholder="Naziv igre">
+    <input type="text" id="gameCategory" placeholder="Mapa (npr. sportske)">
+    <textarea id="gameContent" placeholder="Zalijepi <iframe ...> kod ovdje" style="height:150px;"></textarea>
+    <button onclick="posaljiIgru()">Objavi igru</button>
+</div>
 
-        <div class="card">
-            <h2>🎮 Dodaj Igru</h2>
-            <input type="text" id="gameName" placeholder="Naziv igre">
-            <textarea id="gameContent" placeholder="Link ili HTML kod"></textarea>
-            <button id="btnIgra">Učitaj igru</button>
-        </div>
+<script>
+async function posaljiIgru() {
+    const podaci = {
+        naziv: document.getElementById('gameName').value,
+        kategorija: document.getElementById('gameCategory').value,
+        sadrzaj: document.getElementById('gameContent').value
+    };
 
-        <div class="card">
-            <h2>📝 Dodaj Kviz</h2>
-            <input type="text" id="quizCat" placeholder="Kategorija">
-            <input type="text" id="quizUser" placeholder="Username">
-            <textarea id="quizQuestion" placeholder="Pitanje"></textarea>
-            <input type="text" id="quizOptions" placeholder="Odgovori (zarezom)">
-            <input type="text" id="quizCorrect" placeholder="Točan odgovor">
-            <button id="btnKviz">Spremi kviz</button>
-        </div>
-    </div>
-
-    <script src="admin.js"></script>
-</body>
-</html>
+    const res = await fetch('/api/dodaj-igru', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(podaci)
+    });
+    const r = await res.json();
+    alert(r.message);
+}
+</script>

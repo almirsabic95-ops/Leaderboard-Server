@@ -1,38 +1,33 @@
+// Učitaj mape čim se admin panel otvori
+window.onload = async () => {
+    const res = await fetch('/api/kategorije-igara');
+    const mape = await res.json();
+    const select = document.getElementById('categorySelect');
+    mape.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        select.appendChild(opt);
+    });
+};
+
 async function posaljiIgru() {
     const naziv = document.getElementById('gameName').value;
     const sadrzaj = document.getElementById('gameContent').value;
-    if(!naziv || !sadrzaj) return alert("Popuni sva polja!");
+    const izabranaMapa = document.getElementById('categorySelect').value;
+    const novaMapa = document.getElementById('newCategory').value.trim();
+    
+    const kategorija = novaMapa !== "" ? novaMapa : izabranaMapa;
+
+    if(!naziv || !sadrzaj) return alert("Naziv i kod su obavezni!");
 
     const res = await fetch('/api/dodaj-igru', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ naziv, sadrzaj })
+        body: JSON.stringify({ naziv, kategorija, sadrzaj })
     });
+
     const result = await res.json();
     alert(result.message);
+    location.reload(); 
 }
-
-async function posaljiKviz() {
-    const odgovoriInput = document.getElementById('quizOptions').value;
-    // Ako je prazno, šalje prazan niz, inače siječe zarezima
-    const odgovoriNiz = odgovoriInput.trim() === "" ? [] : odgovoriInput.split(',').map(s => s.trim());
-
-    const payload = {
-        kategorija: document.getElementById('quizCat').value,
-        pitanje: document.getElementById('quizQuestion').value,
-        odgovori: odgovoriNiz,
-        tocan: document.getElementById('quizCorrect').value.trim(),
-        username: document.getElementById('quizUser').value
-    };
-
-    const res = await fetch('/api/dodaj-kviz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    alert(result.message);
-}
-
-document.getElementById('btnIgra').addEventListener('click', posaljiIgru);
-document.getElementById('btnKviz').addEventListener('click', posaljiKviz);
