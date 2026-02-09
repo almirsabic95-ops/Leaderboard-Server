@@ -1,22 +1,87 @@
-async function ucitajSveIgre() {
-    // 1. Prvo dohvatimo sve kategorije (mape: sportska, logicke, itd.)
-    const resKat = await fetch('/api/kategorije-igara');
-    const kategorije = await resKat.json();
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekvizit Kviz - Network Basics</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #121212; color: white; display: flex; flex-direction: column; height: 100vh; }
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px; }
+        #quiz-screen { display: none; flex-direction: column; height: 100%; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; background: #2c2c2c; max-width: 80%; }
+        .system-msg { background: #1a472a; color: #4ade80; font-weight: bold; align-self: center; text-align: center; }
+        #input-area { padding: 20px; display: flex; gap: 10px; background: #1e1e1e; }
+        input, select { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #252525; color: white; outline: none; }
+        input { flex: 1; }
+        button { padding: 10px 25px; border-radius: 8px; border: none; background: #007bff; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
 
-    const listaDiv = document.getElementById('lista-igara');
-    listaDiv.innerHTML = ""; 
+    <div id="login-screen">
+        <h1>REKVIZIT KVIZ</h1>
+        <input type="text" id="username" placeholder="Tvoje korisničko ime...">
+        <select id="room-select">
+            <option value="acl-liste">Soba: ACL Liste (70% Focus)</option>
+            <option value="leaderboard">Soba: Generalni Leaderboard</option>
+        </select>
+        <button onclick="prijaviSe()">Započni kviz</button>
+    </div>
 
-    // 2. Za svaku kategoriju dohvatimo igre unutar nje
-    for (const kat of kategorije) {
-        const resIgre = await fetch(`/api/lista-igara/${kat}`);
-        const igre = await resIgre.json();
+    <div id="quiz-screen">
+        <div id="chat-window"></div>
+        <div id="input-area">
+            <input type="text" id="answer-input" placeholder="Upiši odgovor ovdje...">
+            <button onclick="posalji()">Šalji</button>
+        </div>
+    </div>
 
-        igre.forEach(igra => {
-            // Kreiramo link koji zna točnu putanju do podmape
-            const link = document.createElement('a');
-            link.href = `view-game.html?igra=${igra}&kat=${kat}`;
-            link.innerText = `${igra.replace('.html', '')} (${kat})`;
-            listaDiv.appendChild(link);
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let korisnik = "";
+        let trenutnaSoba = "";
+
+        function prijaviSe() {
+            korisnik = document.getElementById('username').value.trim();
+            trenutnaSoba = document.getElementById('room-select').value;
+            if(!korisnik) return alert("Moraš unijeti ime!");
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'flex';
+            
+            socket.emit('join_room', trenutnaSoba);
+        }
+
+        function posalji() {
+            const tekst = document.getElementById('answer-input').value;
+            if(!tekst) return;
+            socket.emit('slanje_odgovora', { soba: trenutnaSoba, ime: korisnik, tekst: tekst });
+            document.getElementById('answer-input').value = '';
+        }
+
+        socket.on('nova_poruka', (data) => {
+            prikaziPoruku(`${data.ime}: ${data.tekst}`, 'msg');
         });
-    }
-}
+
+        socket.on('obavijest', (data) => {
+            prikaziPoruku(data.poruka, 'msg system-msg');
+        });
+
+        function prikaziPoruku(tekst, klasa) {
+            const div = document.createElement('div');
+            div.className = klasa;
+            div.innerText = tekst;
+            const chat = document.getElementById('chat-window');
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        document.getElementById('answer-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') posalji();
+        });
+    </script>
+</body>
+</html>
