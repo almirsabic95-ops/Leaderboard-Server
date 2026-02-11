@@ -14,7 +14,6 @@ app.use(express.static('public'));
 const BODOVI_FILE = './bodovi.json';
 const PITANJA_FILE = './pitanja.json';
 
-// Inicijalizacija baze ako ne postoji
 if (!fs.existsSync(BODOVI_FILE)) fs.writeFileSync(BODOVI_FILE, JSON.stringify({}, null, 2));
 
 let korisnici = JSON.parse(fs.readFileSync(BODOVI_FILE, 'utf8'));
@@ -26,22 +25,31 @@ let tajmeri = {};
 
 function spremiBazu() { 
     fs.writeFileSync(BODOVI_FILE, JSON.stringify(korisnici, null, 2)); 
+    emitirajTablicu(); // Svaki put kad spremimo, osvježavamo tablicu kod svih
 }
 
-// AUTOMATSKO FILTRIRANJE PITANJA S INTERNETA U KATEGORIJE
+function emitirajTablicu() {
+    // Sortiramo igrače po bodovima od najvećeg prema najmanjem
+    const sortirani = Object.keys(korisnici)
+        .map(ime => ({ ime, bodovi: korisnici[ime].bodovi }))
+        .sort((a, b) => b.bodovi - a.bodovi);
+    
+    io.emit('osvjezi_tablicu', sortirani);
+}
+
+// API dohvaćanje pitanja (svakih sat vremena)
 async function dohvatiNovaPitanja() {
     try {
         const res = await axios.get('https://opentdb.com/api.php?amount=15&type=multiple');
         res.data.results.forEach(q => {
             let kat = 'kultura'; 
             const qat = q.category.toLowerCase();
-            
             if(qat.includes('sport')) kat = 'sport';
             else if(qat.includes('history')) kat = 'povijest';
             else if(qat.includes('geography')) kat = 'zemljopis';
             else if(qat.includes('film') || qat.includes('television')) kat = 'film';
             else if(qat.includes('music')) kat = 'glazba';
-            else if(qat.includes('science') || qat.includes('nature') || qat.includes('mathematics')) kat = 'znanost';
+            else if(qat.includes('science')) kat = 'znanost';
             
             pitanjaPodaci[kat].push({ 
                 pitanje: q.question.replace(/&quot;/g, '"').replace(/&#039;/g, "'"), 
@@ -49,9 +57,9 @@ async function dohvatiNovaPitanja() {
             });
         });
         fs.writeFileSync(PITANJA_FILE, JSON.stringify(pitanjaPodaci, null, 2));
-    } catch (e) { console.log("API trenutno nedostupan."); }
+    } catch (e) { console.log("API Error"); }
 }
-setInterval(dohvatiNovaPitanja, 3600000); 
+setInterval(dohvatiNovaPitanja, 3600000);
 
 function posaljiNovoPitanje(soba) {
     const kategorija = pitanjaPodaci[soba];
@@ -59,35 +67,29 @@ function posaljiNovoPitanje(soba) {
         const nasumicno = kategorija[Math.floor(Math.random() * kategorija.length)];
         trenutnaPitanja[soba] = nasumicno;
         tkoJePogodio[soba] = [];
-
-        io.to(soba).emit('obavijest', { 
-            poruka: `🔥 NOVO PITANJE: ${nasumicno.pitanje}`,
-            tip: 'sustav'
-        });
+        io.to(soba).emit('obavijest', { poruka: `🔥 PITANJE: ${nasumicno.pitanje}`, tip: 'sustav' });
 
         if (tajmeri[soba]) clearTimeout(tajmeri[soba]);
         tajmeri[soba] = setTimeout(() => {
-            io.to(soba).emit('obavijest', { poruka: `Vrijeme isteklo! Odgovor: ${nasumicno.odgovor}` });
+            io.to(soba).emit('obavijest', { poruka: `Isteklo! Odgovor: ${nasumicno.odgovor}` });
             setTimeout(() => posaljiNovoPitanje(soba), 3000);
         }, 30000);
     }
 }
 
 io.on('connection', (socket) => {
+    emitirajTablicu(); // Šaljemo tablicu čim se netko spoji
+
     socket.on('join_room', (data) => {
         const { soba, ime, lozinka, tajnaSifra } = data;
-
-        if (soba === 'certifikati' && ime !== 'Blanco') {
-            return socket.emit('greska_prijava', 'Ova soba je privatna!');
-        }
+        if (soba === 'certifikati' && ime !== 'Blanco') return socket.emit('greska_prijava', 'Samo Blanco!');
 
         if (korisnici[ime]) {
-            if (korisnici[ime].lozinka !== lozinka) return socket.emit('greska_prijava', 'Netočna lozinka!');
+            if (korisnici[ime].lozinka !== lozinka) return socket.emit('greska_prijava', 'Kriva lozinka!');
         } else {
             korisnici[ime] = { lozinka, tajnaSifra, bodovi: 0 };
             spremiBazu();
         }
-
         socket.join(soba);
         socket.emit('uspjesna_prijava', { ime, bodovi: korisnici[ime].bodovi });
         if (!trenutnaPitanja[soba]) posaljiNovoPitanje(soba);
@@ -95,29 +97,17 @@ io.on('connection', (socket) => {
 
     socket.on('slanje_odgovora', (data) => {
         const { soba, ime, tekst } = data;
-        const aktivno = trenutnaPitanja[soba];
-        
-        if (aktivno && aktivno.odgovor.toLowerCase().trim() === tekst.toLowerCase().trim()) {
+        const akt = trenutnaPitanja[soba];
+        if (akt && akt.odgovor.toLowerCase().trim() === tekst.toLowerCase().trim()) {
             if (!tkoJePogodio[soba].includes(ime)) {
-                let bodoviZaDodati = tkoJePogodio[soba].length === 0 ? 7 : 5;
-                korisnici[ime].bodovi += bodoviZaDodati;
+                let dodaj = tkoJePogodio[soba].length === 0 ? 7 : 5;
+                korisnici[ime].bodovi += dodaj;
                 tkoJePogodio[soba].push(ime);
                 spremiBazu();
-                
-                io.to(soba).emit('obavijest', { 
-                    poruka: `✅ ${ime} (+${bodoviZaDodati}b). Ukupno: ${korisnici[ime].bodovi}b`,
-                    tip: 'tocno'
-                });
-
-                if (bodoviZaDodati === 7) {
-                    clearTimeout(tajmeri[soba]);
-                    setTimeout(() => posaljiNovoPitanje(soba), 4000);
-                }
+                io.to(soba).emit('obavijest', { poruka: `✅ ${ime} (+${dodaj}b)`, tip: 'tocno' });
+                if (dodaj === 7) { clearTimeout(tajmeri[soba]); setTimeout(() => posaljiNovoPitanje(soba), 4000); }
             }
-        } else {
-            io.to(soba).emit('nova_poruka', { ime, tekst });
-        }
+        } else { io.to(soba).emit('nova_poruka', { ime, tekst, bodovi: korisnici[ime].bodovi }); }
     });
 });
-
-server.listen(PORT, () => console.log(`Server pokrenut!`));
+server.listen(PORT, () => console.log(`Arena spremna!`));
