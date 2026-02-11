@@ -4,33 +4,49 @@
     <meta charset="UTF-8">
     <title>Rekvizit Arena</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); }
+    </style>
 </head>
-<body class="bg-slate-950 text-white flex flex-col h-screen overflow-hidden">
+<body class="flex flex-col h-screen overflow-hidden">
+
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
-        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-700 w-96 space-y-4">
-            <h1 class="text-2xl font-bold text-center text-blue-400">PRIJAVA</h1>
-            <input type="text" id="username" placeholder="Nadimak..." class="w-full p-2 bg-slate-800 rounded outline-none">
-            <input type="password" id="password" placeholder="Lozinka..." class="w-full p-2 bg-slate-800 rounded outline-none">
-            <input type="text" id="secret" placeholder="Tajna šifra za oporavak..." class="w-full p-2 bg-slate-800 rounded outline-none">
-            <select id="room-select" class="w-full p-2 bg-slate-800 rounded">
-                <option value="kultura">🎨 Kultura</option>
-                <option value="certifikati">🛡️ Moji Certifikati (Blanco)</option>
+        <div class="glass p-8 rounded-2xl border border-slate-800 w-full max-w-sm space-y-3">
+            <h1 class="text-3xl font-black text-center text-blue-500 italic tracking-tighter">REKVIZIT ARENA</h1>
+            <input type="text" id="username" placeholder="Nadimak" class="w-full p-3 rounded bg-slate-900 border border-slate-700 outline-none focus:border-blue-500">
+            <input type="password" id="password" placeholder="Lozinka" class="w-full p-3 rounded bg-slate-900 border border-slate-700 outline-none focus:border-blue-500">
+            <input type="text" id="secret" placeholder="Tajna šifra (za oporavak)" class="w-full p-3 rounded bg-slate-900 border border-slate-700 outline-none focus:border-blue-500">
+            
+            <select id="room-select" class="w-full p-3 rounded bg-slate-900 border border-slate-700">
+                <optgroup label="Stručno">
+                    <option value="certifikati">🛡️ Cisco Certifikati (Blanco)</option>
+                </optgroup>
+                <optgroup label="Zabava">
+                    <option value="balkan">🌍 Balkan Express (Ex-Yu)</option>
+                    <option value="kultura">🎨 Opća Kultura</option>
+                    <option value="sport">⚽ Sport</option>
+                    <option value="znanost">🧪 Znanost & Priroda</option>
+                    <option value="film">🎬 Film & TV</option>
+                    <option value="glazba">🎶 Glazba</option>
+                </optgroup>
             </select>
-            <button onclick="prijaviSe()" class="w-full p-2 bg-blue-600 rounded font-bold">UĐI</button>
-            <p id="error-msg" class="text-red-500 text-xs hidden"></p>
+            
+            <button onclick="prijaviSe()" class="w-full p-3 bg-blue-600 rounded-lg font-bold hover:bg-blue-500 transition-colors">ZAPOČNI KVIZ</button>
+            <p id="error-msg" class="text-red-500 text-xs text-center hidden"></p>
         </div>
     </div>
 
-    <header class="p-4 border-b border-slate-800 flex justify-between items-center">
-        <h2 class="text-xl font-bold text-blue-400">Rekvizit Arena</h2>
-        <div id="display-name" class="text-emerald-400 font-mono"></div>
+    <header class="p-4 border-b border-slate-800 flex justify-between items-center glass">
+        <h2 class="font-bold text-blue-400">ARENA</h2>
+        <div id="display-name" class="text-emerald-400 font-mono text-sm"></div>
     </header>
 
-    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-2"></main>
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 to-slate-950"></main>
 
-    <footer class="p-4 bg-slate-900 flex gap-2">
-        <input type="text" id="answer-input" class="flex-1 p-2 bg-slate-800 rounded outline-none">
-        <button onclick="posalji()" class="bg-blue-600 px-4 rounded font-bold">ŠALJI</button>
+    <footer class="p-4 glass border-t border-slate-800 flex gap-2">
+        <input type="text" id="answer-input" placeholder="Upiši odgovor..." class="flex-1 p-3 rounded-xl bg-slate-900 border border-slate-800 outline-none focus:border-blue-500 transition-all">
+        <button onclick="posalji()" class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-emerald-500 transition-colors">ŠALJI</button>
     </footer>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -44,12 +60,13 @@
             const lozinka = document.getElementById('password').value;
             const tajnaSifra = document.getElementById('secret').value;
             soba = document.getElementById('room-select').value;
-            if(!korisnik || !lozinka || !tajnaSifra) return alert("Popuni sve!");
+            
+            if(!korisnik || !lozinka || !tajnaSifra) return alert("Popuni sva polja!");
             socket.emit('join_room', { soba, ime: korisnik, lozinka, tajnaSifra });
         }
 
         socket.on('uspjesna_prijava', (data) => {
-            document.getElementById('display-name').innerText = `${data.ime} (${data.bodovi}b)`;
+            document.getElementById('display-name').innerText = `${data.ime} | ${data.bodovi} B`;
             document.getElementById('login-screen').classList.add('hidden');
         });
 
@@ -60,21 +77,27 @@
 
         function posalji() {
             const input = document.getElementById('answer-input');
+            if(!input.value.trim()) return;
             socket.emit('slanje_odgovora', { soba, ime: korisnik, tekst: input.value });
             input.value = '';
         }
 
         socket.on('nova_poruka', (data) => dodajPoruku(data.ime, data.tekst, 'text-slate-400'));
-        socket.on('obavijest', (data) => dodajPoruku('SUSTAV', data.poruka, 'text-blue-300 font-bold'));
+        socket.on('obavijest', (data) => {
+            const boja = data.tip === 'tocno' ? 'text-emerald-400' : 'text-blue-400';
+            dodajPoruku('SUSTAV', data.poruka, `${boja} font-bold italic`);
+        });
 
         function dodajPoruku(autor, tekst, stil) {
             const win = document.getElementById('chat-window');
             const div = document.createElement('div');
             div.className = `p-2 ${stil}`;
-            div.innerHTML = `<span class="text-[10px] block opacity-50">${autor}</span>${tekst}`;
+            div.innerHTML = `<span class="text-[10px] block opacity-50 uppercase">${autor}</span><span>${tekst}</span>`;
             win.appendChild(div);
             win.scrollTop = win.scrollHeight;
         }
+
+        document.getElementById('answer-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') posalji(); });
     </script>
 </body>
 </html>
