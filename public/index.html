@@ -4,89 +4,175 @@
     <meta charset="UTF-8">
     <title>Rekvizit Arena</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #020617; color: #f8fafc; }</style>
+    <style>
+        body { background: #020617; color: #f8fafc; overflow: hidden; }
+        .hidden { display: none; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
-        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-full max-w-sm space-y-3">
-            <h1 class="text-2xl font-bold text-center text-blue-500">REKVIZIT ARENA</h1>
-            <input type="text" id="username" placeholder="Nadimak" class="w-full p-3 rounded bg-slate-800 outline-none">
-            <input type="password" id="password" placeholder="Lozinka" class="w-full p-3 rounded bg-slate-800 outline-none">
-            <input type="text" id="secret" placeholder="Tajna šifra" class="w-full p-3 rounded bg-slate-800 outline-none">
-            <select id="room-select" class="w-full p-3 rounded bg-slate-800">
-                <option value="kultura">🎨 Opća Kultura</option>
-                <option value="balkan">🌍 Balkan Express</option>
-                <option value="certifikati">🛡️ Cisco Certifikati</option>
-            </select>
-            <button onclick="prijaviSe()" class="w-full p-3 bg-blue-600 rounded font-bold">UĐI</button>
-            <p id="error-msg" class="text-red-500 text-xs hidden"></p>
+<body class="h-screen flex flex-col">
+
+    <div id="screen-login" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
+        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 w-full max-w-sm space-y-4 shadow-2xl">
+            <h1 class="text-3xl font-black text-center text-blue-500 italic">REKVIZIT ARENA</h1>
+            <input type="text" id="log-user" placeholder="Nadimak" class="w-full p-4 rounded-xl bg-slate-800 outline-none focus:ring-2 ring-blue-500">
+            <input type="password" id="log-pass" placeholder="Lozinka" class="w-full p-4 rounded-xl bg-slate-800 outline-none">
+            <input type="text" id="log-secret" placeholder="Tajna šifra" class="w-full p-4 rounded-xl bg-slate-800 outline-none">
+            <button onclick="prijava()" class="w-full p-4 bg-blue-600 rounded-2xl font-bold hover:scale-105 transition-transform">KRENI</button>
         </div>
     </div>
 
-    <header class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-        <h2 class="font-bold text-blue-400">ARENA KVIZ</h2>
-        <div id="display-name" class="text-emerald-400 font-mono text-sm"></div>
-    </header>
+    <div id="screen-menu" class="hidden fixed inset-0 z-40 bg-slate-950 p-6 overflow-y-auto">
+        <div class="max-w-5xl mx-auto space-y-8">
+            <div class="flex justify-between items-center">
+                <h2 class="text-4xl font-black text-white">ARENA <span class="text-blue-500">DASHBOARD</span></h2>
+                <button onclick="location.reload()" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-lg border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">ODJAVA</button>
+            </div>
 
-    <div class="flex flex-1 overflow-hidden">
-        <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-2"></main>
-        
-        <aside class="w-64 border-l border-slate-800 bg-slate-900/50 p-4 hidden md:block overflow-y-auto">
-            <h3 class="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Poredak</h3>
-            <div id="leaderboard-list" class="space-y-3"></div>
-        </aside>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-slate-900 p-6 rounded-3xl border border-slate-800">
+                    <h3 class="text-xl font-bold mb-4">GLOBALNI POREDAK (Top 100)</h3>
+                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                        <button onclick="ucitajTablicu('dan')" class="bg-slate-800 px-4 py-2 rounded-lg text-sm">Danas</button>
+                        <button onclick="ucitajTablicu('tjedan')" class="bg-slate-800 px-4 py-2 rounded-lg text-sm">Tjedan</button>
+                        <button onclick="ucitajTablicu('mjesec')" class="bg-slate-800 px-4 py-2 rounded-lg text-sm">Mjesec</button>
+                        <button onclick="ucitajTablicu('all')" class="bg-blue-600 px-4 py-2 rounded-lg text-sm font-bold">Sve Vrijeme</button>
+                    </div>
+                    <div class="max-h-[400px] overflow-y-auto border border-slate-800 rounded-xl">
+                        <table class="w-full">
+                            <tbody id="main-leaderboard-body"></tbody>
+                        </table>
+                    </div>
+                    <div id="moj-rank-info" class="mt-4 p-4 bg-blue-600/10 border border-blue-600/20 rounded-xl text-blue-400 font-bold text-center"></div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold mb-4">SOBE ZA KVIZ</h3>
+                    <div onclick="ulaziUSobu('kultura')" class="p-5 bg-slate-900 rounded-2xl border border-slate-800 cursor-pointer hover:bg-slate-800 transition-all">
+                        <div class="text-2xl mb-1">🎨</div> <div class="font-bold">Opća Kultura</div>
+                    </div>
+                    <div onclick="ulaziUSobu('balkan')" class="p-5 bg-slate-900 rounded-2xl border border-slate-800 cursor-pointer hover:bg-slate-800 transition-all">
+                        <div class="text-2xl mb-1">🌍</div> <div class="font-bold">Balkan Express</div>
+                    </div>
+                    <div id="btn-cert" onclick="ulaziUSobu('certifikati')" class="hidden p-5 bg-blue-900/20 rounded-2xl border border-blue-800 cursor-pointer hover:bg-blue-900/40">
+                        <div class="text-2xl mb-1">🛡️</div> <div class="font-bold text-blue-400">Cisco Certifikati</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <footer class="p-4 border-t border-slate-800 flex gap-2">
-        <input type="text" id="answer-input" placeholder="Odgovor..." class="flex-1 p-3 rounded bg-slate-900 outline-none">
-        <button onclick="posalji()" class="bg-blue-600 px-6 rounded font-bold">ŠALJI</button>
-    </footer>
+    <div id="screen-arena" class="hidden flex-1 flex flex-col h-screen">
+        <header class="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+            <button onclick="povratakUMenu()" class="bg-slate-800 px-4 py-2 rounded-lg text-sm">← IZAĐI IZ SOBE</button>
+            <div id="room-title" class="font-black text-blue-500 uppercase"></div>
+            <div id="user-tag" class="text-emerald-400 font-mono text-sm px-3 py-1 bg-emerald-400/10 rounded-full border border-emerald-400/20"></div>
+        </header>
+        <div class="flex flex-1 overflow-hidden">
+            <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-950"></main>
+            <aside class="w-64 bg-slate-900/50 border-l border-slate-800 p-4">
+                <h4 class="text-xs font-bold text-slate-500 mb-4 uppercase tracking-tighter">Poredak u sobi</h4>
+                <div id="sidebar-list" class="space-y-2"></div>
+            </aside>
+        </div>
+        <footer class="p-4 bg-slate-900 border-t border-slate-800 flex gap-2">
+            <input type="text" id="ans-input" placeholder="Tvoj odgovor..." class="flex-1 p-4 rounded-2xl bg-slate-800 outline-none focus:ring-2 ring-blue-500">
+            <button onclick="posaljiOdgovor()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-emerald-500 transition-all">ŠALJI</button>
+        </footer>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let korisnik = "", soba = "";
+        let mojId = "";
 
-        function prijaviSe() {
-            korisnik = document.getElementById('username').value.trim();
-            const l = document.getElementById('password').value;
-            const s = document.getElementById('secret').value;
-            soba = document.getElementById('room-select').value;
-            if(!korisnik || !l || !s) return alert("Popuni sve!");
-            socket.emit('join_room', { soba, ime: korisnik, lozinka: l, tajnaSifra: s });
+        function prijava() {
+            const data = {
+                ime: document.getElementById('log-user').value,
+                lozinka: document.getElementById('log-pass').value,
+                tajnaSifra: document.getElementById('log-secret').value
+            };
+            socket.emit('prijava', data);
         }
 
         socket.on('uspjesna_prijava', (d) => {
-            document.getElementById('display-name').innerText = `${d.ime} [${d.bodovi} B]`;
-            document.getElementById('login-screen').classList.add('hidden');
+            mojId = d.ime;
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-menu').classList.remove('hidden');
+            if(d.jeAdmin) document.getElementById('btn-cert').classList.remove('hidden');
+            ucitajTablicu('all');
         });
 
-        socket.on('osvjezi_tablicu', (lista) => {
-            const listDiv = document.getElementById('leaderboard-list');
-            listDiv.innerHTML = lista.map((p, i) => `
-                <div class="flex justify-between items-center ${p.ime === korisnik ? 'text-blue-400 font-bold' : 'text-slate-300'}">
+        function ucitajTablicu(period) {
+            socket.emit('dohvati_glavnu_tablicu', period);
+        }
+
+        socket.on('odgovor_glavna_tablica', (lista) => {
+            const body = document.getElementById('main-leaderboard-body');
+            body.innerHTML = lista.map((p, i) => `
+                <tr class="${p.ime === mojId ? 'bg-blue-600/20 font-bold' : ''} border-b border-slate-800">
+                    <td class="p-3 text-slate-500 text-sm">${i+1}.</td>
+                    <td class="p-3 font-bold">${p.ime}</td>
+                    <td class="p-3 text-right text-emerald-400 font-mono">${p.bodovi}</td>
+                </tr>
+            `).join('');
+
+            // Tvoj rank info
+            const mojIndex = lista.findIndex(p => p.ime === mojId);
+            if(mojIndex !== -1) {
+                document.getElementById('moj-rank-info').innerHTML = `Tvoj rank: #${mojIndex + 1} | Bodovi: ${lista[mojIndex].bodovi}`;
+            }
+        });
+
+        function ulaziUSobu(soba) {
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-arena').classList.remove('hidden');
+            document.getElementById('room-title').innerText = soba;
+            document.getElementById('user-tag').innerText = mojId;
+            socket.emit('join_room', soba);
+        }
+
+        function povratakUMenu() {
+            document.getElementById('screen-arena').classList.add('hidden');
+            document.getElementById('screen-menu').classList.remove('hidden');
+            ucitajTablicu('all');
+        }
+
+        function posaljiOdgovor() {
+            const i = document.getElementById('ans-input');
+            if(i.value.trim()) {
+                socket.emit('slanje_odgovora', { tekst: i.value });
+                i.value = '';
+            }
+        }
+
+        document.getElementById('ans-input').addEventListener('keypress', e => { if(e.key === 'Enter') posaljiOdgovor(); });
+
+        socket.on('osvjezi_sidebar', (lista) => {
+            const side = document.getElementById('sidebar-list');
+            side.innerHTML = lista.map((p, i) => `
+                <div class="flex justify-between text-sm ${p.ime === mojId ? 'text-blue-400 font-bold' : 'text-slate-400'}">
                     <span>${i+1}. ${p.ime}</span>
-                    <span class="font-mono text-xs bg-slate-800 px-2 py-1 rounded">${p.bodovi}</span>
+                    <span class="font-mono">${p.bodovi}</span>
                 </div>
             `).join('');
         });
 
-        function posalji() {
-            const i = document.getElementById('answer-input');
-            socket.emit('slanje_odgovora', { soba, ime: korisnik, tekst: i.value });
-            i.value = '';
-        }
-
-        socket.on('nova_poruka', (d) => dodajPoruku(`${d.ime} [${d.bodovi} B]`, d.tekst, 'text-slate-400'));
-        socket.on('obavijest', (d) => dodajPoruku('SUSTAV', d.poruka, 'text-blue-400 font-bold italic'));
-
-        function dodajPoruku(a, t, s) {
-            const w = document.getElementById('chat-window');
-            const d = document.createElement('div');
-            d.className = `p-1 ${s}`;
-            d.innerHTML = `<span class="text-[10px] block opacity-50">${a}</span>${t}`;
-            w.appendChild(d); w.scrollTop = w.scrollHeight;
-        }
+        socket.on('obavijest', (d) => {
+            const win = document.getElementById('chat-window');
+            const div = document.createElement('div');
+            let stil = "p-2 rounded-lg text-sm ";
+            if(d.tip === 'tocno') stil += "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            else if(d.tip === 'netocno') stil += "bg-red-500/10 text-red-500 border border-red-500/20";
+            else if(d.tip === 'tajmer') stil += "text-slate-500 italic";
+            else stil += "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+            
+            div.className = stil;
+            div.innerHTML = d.poruka;
+            win.appendChild(div);
+            win.scrollTop = win.scrollHeight;
+        });
     </script>
 </body>
 </html>
