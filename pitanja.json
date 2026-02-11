@@ -1,62 +1,18 @@
 {
-  "kultura": [
-    { "pitanje": "Tko je naslikao Monu Lisu?", "odgovor": "Leonardo da Vinci" },
-    { "pitanje": "Kako se zove glavni grad Francuske?", "odgovor": "Pariz" },
-    { "pitanje": "Koji je najposjećeniji muzej na svijetu?", "odgovor": "Louvre" },
-    { "pitanje": "Tko je napisao 'Hamleta'?", "odgovor": "Shakespeare" },
-    { "pitanje": "Koji instrument svira Maksim Mrvica?", "odgovor": "Klavir" },
-    { "pitanje": "Koji se grad naziva 'Vječni grad'?", "odgovor": "Rim" },
-    { "pitanje": "Kako se zove španjolski ples u 3/4 taktu?", "odgovor": "Bolero" },
-    { "pitanje": "Koji je službeni jezik u Brazilu?", "odgovor": "Portugalski" },
-    { "pitanje": "Tko je autor kipa 'Mislioc'?", "odgovor": "Rodin" },
-    { "pitanje": "U kojoj državi je nastala opera?", "odgovor": "Italija" }
-  ],
-  "politika": [
-    { "pitanje": "Gdje je sjedište Europske unije?", "odgovor": "Bruxelles" },
-    { "pitanje": "Koliko godina traje mandat predsjednika RH?", "odgovor": "5" },
-    { "pitanje": "Kako se zove donji dom američkog Kongresa?", "odgovor": "Zastupnički dom" },
-    { "pitanje": "Kratica za Sjevernoatlantski savez?", "odgovor": "NATO" },
-    { "pitanje": "Tko je bio prvi predsjednik SAD-a?", "odgovor": "George Washington" },
-    { "pitanje": "Glavni tajnik UN-a je Antonio...?", "odgovor": "Guterres" },
-    { "pitanje": "U kojem gradu je sjedište UN-a?", "odgovor": "New York" },
-    { "pitanje": "Kako se zove političko uređenje gdje vlada narod?", "odgovor": "Demokracija" },
-    { "pitanje": "Koja država ima najviše stanovnika na svijetu?", "odgovor": "Indija" },
-    { "pitanje": "Koji je glavni grad Njemačke?", "odgovor": "Berlin" }
-  ],
-  "sport": [
-    { "pitanje": "Koliko igrača ima košarkaška ekipa na terenu?", "odgovor": "5" },
-    { "pitanje": "Gdje su održane prve moderne Olimpijske igre 1896.?", "odgovor": "Atena" },
-    { "pitanje": "Koji nogometaš ima najviše Zlatnih lopti?", "odgovor": "Messi" },
-    { "pitanje": "Kako se zove najpoznatija biciklistička utrka?", "odgovor": "Tour de France" },
-    { "pitanje": "U kojem sportu se koristi 'puck'?", "odgovor": "Hokej" },
-    { "pitanje": "Koliko Grand Slam turnira postoji u sezoni?", "odgovor": "4" },
-    { "pitanje": "Tko drži svjetski rekord na 100 metara?", "odgovor": "Usain Bolt" },
-    { "pitanje": "Koji je sport popularno zvan 'bijeli sport'?", "odgovor": "Tenis" },
-    { "pitanje": "Koliko minuta traje regularni dio rukometne utakmice?", "odgovor": "60" },
-    { "pitanje": "U kojoj državi se vozi staza Monza?", "odgovor": "Italija" }
-  ],
-  "povijest": [
-    { "pitanje": "Koje godine je pao Berlinski zid?", "odgovor": "1989" },
-    { "pitanje": "Tko je otkrio Ameriku 1492. godine?", "odgovor": "Kolumbo" },
-    { "pitanje": "Kako se zvao prvi rimski car?", "odgovor": "August" },
-    { "pitanje": "Koje godine je završio Drugi svjetski rat?", "odgovor": "1945" },
-    { "pitanje": "U kojoj državi su izgrađene piramide u Gizi?", "odgovor": "Egipat" },
-    { "pitanje": "Tko je bila 'Željezna lady'?", "odgovor": "Margaret Thatcher" },
-    { "pitanje": "Kako se zvala ruska vladarska obitelj do 1917.?", "odgovor": "Romanov" },
-    { "pitanje": "Koji je grad uništen u erupciji Vezuva 79. godine?", "odgovor": "Pompeji" },
-    { "pitanje": "Tko je napisao Deklaraciju neovisnosti SAD-a?", "odgovor": "Thomas Jefferson" },
-    { "pitanje": "Francuska revolucija počela je padom utvrde...?", "odgovor": "Bastille" }
-  ],
-  "zemljopis": [
-    { "pitanje": "Koji je najmanji kontinent?", "odgovor": "Australija" },
-    { "pitanje": "Koja rijeka prolazi kroz London?", "odgovor": "Temza" },
-    { "pitanje": "Najviši vrh svijeta?", "odgovor": "Mount Everest" },
-    { "pitanje": "Koji ocean je najveći?", "odgovor": "Tihi ocean" },
-    { "pitanje": "Glavni grad Japana?", "odgovor": "Tokio" },
-    { "pitanje": "Koja država ima oblik čizme?", "odgovor": "Italija" },
-    { "pitanje": "U kojem pustinji se nalazi Sahara?", "odgovor": "Afrika" },
-    { "pitanje": "Koji je najveći otok na svijetu?", "odgovor": "Grenland" },
-    { "pitanje": "Kroz koju državu protječe Amazonija?", "odgovor": "Brazil" },
-    { "pitanje": "Glavni grad Australije?", "odgovor": "Canberra" }
+  "kultura": [],
+  "politika": [],
+  "sport": [],
+  "povijest": [],
+  "zemljopis": [],
+  "certifikati": [
+    { "pitanje": "Koji port koristi SSH?", "odgovor": "22" },
+    { "pitanje": "Koji je raspon Standard ACL lista?", "odgovor": "1-99" },
+    { "pitanje": "Kako se zove AI koji generira novi sadržaj?", "odgovor": "Generative AI" },
+    { "pitanje": "Koji dio OS-a upravlja resursima hardvera?", "odgovor": "Kernel" },
+    { "pitanje": "Što kratica CIA znači u Cybersecurityju?", "odgovor": "Confidentiality Integrity Availability" },
+    { "pitanje": "U kojem alatu simuliramo mrežne konfiguracije?", "odgovor": "Cisco Packet Tracer" },
+    { "pitanje": "Koji sloj OSI modela koristi IP adrese?", "odgovor": "Mrežni sloj" },
+    { "pitanje": "Što je phishing?", "odgovor": "Vrsta cyber napada putem lažnih poruka" },
+    { "pitanje": "Koji je osnovni dio računala koji obrađuje podatke?", "odgovor": "Procesor" }
   ]
 }
