@@ -1,23 +1,4 @@
-{
-  "kultura": [],
-  "politika": [],
-  "sport": [],
-  "povijest": [],
-  "zemljopis": [],
-  "kultura": [],
-  "sport": [],
-  "film": [],
-  "znanost": [],
-  "glazba": [],
-  "balkan": [
-    { "pitanje": "Koji je glavni grad Bosne i Hercegovine?", "odgovor": "Sarajevo" },
-    { "pitanje": "Kako se zove poznati most u Mostaru?", "odgovor": "Stari most" },
-    { "pitanje": "Koja rijeka teče kroz Banja Luku?", "odgovor": "Vrbas" }
-    { "pitanje": "Koji se grad naziva 'Grad soli'?", "odgovor": "Tuzla" },
-    { "pitanje": "Kako se zove najveće jezero u Crnoj Gori?", "odgovor": "Skadarsko jezero" },
-    { "pitanje": "Koja planina je poznata kao 'Krov Bosne'?", "odgovor": "Jahorina" }
-  ],
-  "certifikati": [
+"certifikati": [
     { "pitanje": "Koji port koristi SSH?", "odgovor": "22" },
     { "pitanje": "Koji je raspon Standard ACL lista?", "odgovor": "1-99" },
     { "pitanje": "Kako se zove AI koji generira novi sadržaj?", "odgovor": "Generative AI" },
@@ -28,4 +9,3 @@
     { "pitanje": "Što je phishing?", "odgovor": "Vrsta cyber napada putem lažnih poruka" },
     { "pitanje": "Koji je osnovni dio računala koji obrađuje podatke?", "odgovor": "Procesor" }
   ]
-}
