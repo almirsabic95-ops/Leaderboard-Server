@@ -16,12 +16,10 @@ const PITANJA_FOLDER = './pitanja/';
 let korisnici = fs.existsSync(BODOVI_FILE) ? JSON.parse(fs.readFileSync(BODOVI_FILE, 'utf8')) : {};
 let pitanjaPodaci = {};
 
-// Dinamičko učitavanje pitanja iz mape
 function ucitajSvaPitanja() {
     pitanjaPodaci = {}; 
     const datoteke = ['balkan.json', 'cisco.json', 'ostalo.json'];
     if (!fs.existsSync(PITANJA_FOLDER)) fs.mkdirSync(PITANJA_FOLDER);
-
     datoteke.forEach(file => {
         const putanja = PITANJA_FOLDER + file;
         if (fs.existsSync(putanja)) {
@@ -56,25 +54,23 @@ function posaljiNovoPitanje(soba) {
     if (!kategorija || kategorija.length === 0) return;
     const sad = Date.now();
     if (!povijestPitanja[soba]) povijestPitanja[soba] = [];
-
     let dostupna = kategorija.filter(p => {
         const stara = povijestPitanja[soba].find(pov => pov.tekst === p.pitanje);
         return !stara || (sad - stara.vrijeme) > (3 * 60 * 60 * 1000);
     });
-
     if (dostupna.length === 0) { povijestPitanja[soba] = []; dostupna = kategorija; }
     const pitanje = dostupna[Math.floor(Math.random() * dostupna.length)];
     povijestPitanja[soba].push({ tekst: pitanje.pitanje, vrijeme: sad });
-    
     trenutnaPitanja[soba] = pitanje;
     tkoJePogodio[soba] = [];
     io.to(soba).emit('obavijest', { poruka: `❓ PITANJE: ${pitanje.pitanje}`, tip: 'sustav' });
-
     let preostalo = 30;
     if (intervaliOdbrojavanja[soba]) clearInterval(intervaliOdbrojavanja[soba]);
     intervaliOdbrojavanja[soba] = setInterval(() => {
         preostalo--;
-        if (preostalo === 15 || (preostalo <= 10 && preostalo > 0)) io.to(soba).emit('obavijest', { poruka: preostalo === 15 ? "⏱️ 15s!" : `⏳ ${preostalo}...`, tip: 'tajmer' });
+        if (preostalo === 15 || (preostalo <= 10 && preostalo > 0)) {
+            io.to(soba).emit('obavijest', { poruka: preostalo === 15 ? "⏱️ 15s!" : `⏳ ${preostalo}...`, tip: 'tajmer' });
+        }
         if (preostalo <= 0) {
             clearInterval(intervaliOdbrojavanja[soba]);
             io.to(soba).emit('obavijest', { poruka: `⌛ Isteklo! Odgovor: ${pitanje.odgovor}`, tip: 'sustav' });
@@ -104,12 +100,29 @@ io.on('connection', (socket) => {
     });
 
     socket.on('slanje_odgovora', (data) => {
-        const soba = socket.trenutnaSoba; const akt = trenutnaPitanja[soba];
+        const soba = socket.trenutnaSoba; 
+        const akt = trenutnaPitanja[soba];
         if (!akt || !socket.ime || tkoJePogodio[soba].includes(socket.ime)) return;
 
         if (akt.odgovor.toLowerCase().trim() === data.tekst.toLowerCase().trim()) {
             clearInterval(intervaliOdbrojavanja[soba]);
             let iznos = tkoJePogodio[soba].length === 0 ? 7 : 5;
             korisnici[socket.ime].povijest.push({ iznos, kategorija: soba, vrijeme: Date.now() });
-            tkoJePogodio[soba].push(socket.ime); spremiBazu();
-            io.to(soba
+            tkoJePogodio[soba].push(socket.ime); 
+            spremiBazu();
+            io.to(soba).emit('obavijest', { poruka: `✅ ${socket.ime} POGODIO! (+${iznos}b)`, tip: 'tocno' });
+            setTimeout(() => posaljiNovoPitanje(soba), 3000);
+        } else {
+            korisnici[socket.ime].povijest.push({ iznos: -2, kategorija: soba, vrijeme: Date.now() });
+            spremiBazu(); 
+            socket.emit('obavijest', { poruka: `❌ Netočno! (-2b)`, tip: 'netocno' });
+        }
+        io.to(soba).emit('osvjezi_sidebar', dohvatiRangListu(soba).slice(0, 20));
+    });
+
+    socket.on('dohvati_glavnu_tablicu', (period) => {
+        socket.emit('odgovor_glavna_tablica', dohvatiRangListu('global', period));
+    });
+});
+
+server.listen(PORT, () => console.log(`Arena na portu ${PORT}`));

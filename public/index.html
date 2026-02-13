@@ -16,12 +16,12 @@
 <body class="flex flex-col">
 
     <div id="screen-login" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 text-white">
-        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 w-full max-w-sm space-y-4 shadow-2xl">
-            <h1 class="text-3xl font-black text-center text-blue-500 italic uppercase">Arena</h1>
+        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 w-full max-w-sm space-y-4 shadow-2xl text-center">
+            <h1 class="text-3xl font-black text-blue-500 italic uppercase">Arena</h1>
             <input type="text" id="log-user" placeholder="Nadimak" class="w-full p-4 rounded-xl bg-slate-800 outline-none text-base">
             <input type="password" id="log-pass" placeholder="Lozinka" class="w-full p-4 rounded-xl bg-slate-800 outline-none text-base">
             <div id="wrapper-secret" class="hidden">
-                <p class="text-[10px] text-orange-400 mb-1 ml-2 uppercase font-bold italic">Novi račun? Smisli tajnu šifru:</p>
+                <p class="text-[10px] text-orange-400 mb-1 uppercase font-bold italic">Novi račun? Smisli tajnu šifru:</p>
                 <input type="text" id="log-secret" placeholder="Tajna šifra" class="w-full p-4 rounded-xl bg-slate-800 border border-orange-500/50 outline-none text-base">
             </div>
             <button id="btn-prijava" onclick="prijava()" class="w-full p-4 bg-blue-600 rounded-2xl font-bold hover:bg-blue-500 active:scale-95 transition-all">KRENI</button>
@@ -31,21 +31,21 @@
     <div id="screen-menu" class="hidden fixed inset-0 z-40 bg-slate-950 p-4 overflow-y-auto">
         <div class="max-w-6xl mx-auto space-y-6 pb-10">
             <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-black italic">REKVIZIT <span class="text-blue-500 text-3xl">ARENA</span></h2>
-                <button onclick="location.reload()" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-lg text-xs border border-red-500/20">ODJAVA</button>
+                <h2 class="text-2xl font-black italic uppercase">Rekvizit <span class="text-blue-500">Arena</span></h2>
+                <button onclick="location.reload()" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-lg text-xs border border-red-500/20 uppercase font-bold">Odjava</button>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 bg-slate-900 p-6 rounded-3xl border border-slate-800">
                     <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2">
-                        <button onclick="ucitajTablicu('dan')" class="filter-btn bg-slate-800 px-4 py-2 rounded-lg text-xs whitespace-nowrap">Danas</button>
-                        <button onclick="ucitajTablicu('tjedan')" class="filter-btn bg-slate-800 px-4 py-2 rounded-lg text-xs whitespace-nowrap">Tjedan</button>
-                        <button onclick="ucitajTablicu('all')" class="filter-btn bg-blue-600 font-bold px-4 py-2 rounded-lg text-xs whitespace-nowrap">Sve</button>
+                        <button onclick="ucitajTablicu('dan')" class="filter-btn bg-slate-800 px-4 py-2 rounded-lg text-xs">Danas</button>
+                        <button onclick="ucitajTablicu('tjedan')" class="filter-btn bg-slate-800 px-4 py-2 rounded-lg text-xs">Tjedan</button>
+                        <button onclick="ucitajTablicu('all')" class="filter-btn bg-blue-600 font-bold px-4 py-2 rounded-lg text-xs">Sve</button>
                     </div>
                     <table class="w-full text-left">
                         <tbody id="main-leaderboard-body"></tbody>
                     </table>
                 </div>
-                <div class="grid grid-cols-2 gap-2" id="kategorije-lista">
+                <div class="grid grid-cols-2 gap-2">
                     <button onclick="ulaziUSobu('kultura')" class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-sm">🎨 Kultura</button>
                     <button onclick="ulaziUSobu('sport')" class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-sm">⚽ Sport</button>
                     <button onclick="ulaziUSobu('znanost')" class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-sm">🧪 Znanost</button>
@@ -61,12 +61,10 @@
             <div id="room-title" class="font-bold text-blue-500 uppercase text-xs"></div>
             <div id="user-display" class="text-emerald-400 font-mono text-[10px]"></div>
         </header>
-        <div class="flex flex-1 overflow-hidden">
-            <main id="chat-window" class="p-4"></main>
-        </div>
+        <main id="chat-window" class="p-4"></main>
         <footer class="p-3 bg-slate-900 border-t border-slate-800">
             <div class="flex gap-2 max-w-4xl mx-auto">
-                <input type="text" id="ans-input" placeholder="Odgovor..." class="flex-1 p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-base">
+                <input type="text" id="ans-input" autocomplete="off" placeholder="Odgovor..." class="flex-1 p-4 rounded-xl bg-slate-800 border border-slate-700 outline-none text-base">
                 <button onclick="posaljiOdgovor()" class="bg-blue-600 px-6 rounded-xl font-bold uppercase text-xs">Šalji</button>
             </div>
         </footer>
@@ -77,13 +75,11 @@
         const socket = io(); let mojId = "";
 
         function prijava() {
-            const data = {
-                ime: document.getElementById('log-user').value.trim(),
-                lozinka: document.getElementById('log-pass').value,
-                tajnaSifra: document.getElementById('log-secret').value
-            };
-            if(!data.ime || !data.lozinka) return alert("Unesi podatke!");
-            socket.emit('prijava', data);
+            const user = document.getElementById('log-user').value.trim();
+            const pass = document.getElementById('log-pass').value;
+            const secret = document.getElementById('log-secret').value;
+            if(!user || !pass) return alert("Unesi podatke!");
+            socket.emit('prijava', { ime: user, lozinka: pass, tajnaSifra: secret });
         }
 
         socket.on('prikazi_registraciju', () => {
@@ -98,7 +94,7 @@
             document.getElementById('screen-menu').classList.remove('hidden');
             if(d.jeAdmin) document.getElementById('admin-btn').classList.remove('hidden');
             document.getElementById('user-display').innerText = mojId;
-            setTimeout(() => ucitajTablicu('all'), 300);
+            setTimeout(() => socket.emit('dohvati_glavnu_tablicu', 'all'), 300);
         });
 
         function ucitajTablicu(period) {
@@ -122,13 +118,14 @@
             document.getElementById('screen-menu').classList.add('hidden');
             document.getElementById('screen-arena').classList.remove('hidden');
             document.getElementById('room-title').innerText = s;
-            socket.emit('join_room', s); document.getElementById('chat-window').innerHTML = '';
+            socket.emit('join_room', s);
+            document.getElementById('chat-window').innerHTML = '';
         }
 
         function povratakUMenu() {
             document.getElementById('screen-arena').classList.add('hidden');
             document.getElementById('screen-menu').classList.remove('hidden');
-            ucitajTablicu('all');
+            socket.emit('dohvati_glavnu_tablicu', 'all');
         }
 
         function posaljiOdgovor() {
@@ -149,8 +146,7 @@
             div.className = s; div.innerHTML = d.poruka;
             win.appendChild(div); win.scrollTop = win.scrollHeight;
         });
-
-        socket.on('osvjezi_sidebar', (lista) => { /* Ovdje možeš dodati mini listu unutar sobe ako želiš */ });
+        socket.on('osvjezi_sidebar', () => {});
     </script>
 </body>
 </html>
