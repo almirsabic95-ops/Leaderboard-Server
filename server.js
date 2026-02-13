@@ -17,7 +17,6 @@ const PITANJA_FOLDER = './pitanja/';
 let korisnici = fs.existsSync(BODOVI_FILE) ? JSON.parse(fs.readFileSync(BODOVI_FILE, 'utf8')) : {};
 let pitanjaPodaci = { kultura: [], sport: [], povijest: [], zemljopis: [], znanost: [], film: [], glazba: [], balkan: [], cisco: [] };
 
-// MAPIRANJE (Open Trivia DB -> Tvojih 7 kategorija)
 const API_MAPA = {
     9: 'kultura', 25: 'kultura',
     21: 'sport',
@@ -42,7 +41,7 @@ async function dopuniPitanja() {
         if (res.data.results) {
             for (let p of res.data.results) {
                 const mojaKat = API_MAPA[p.category_id];
-                if (mojaKat) { // Dodajemo samo ako je u tvojih 7 kategorija
+                if (mojaKat) {
                     const q = await prevedi(p.question.replace(/&quot;/g, '"').replace(/&#039;/g, "'"));
                     const a = await prevedi(p.correct_answer);
                     pitanjaPodaci[mojaKat].push({ pitanje: q, odgovor: a });
@@ -54,14 +53,17 @@ async function dopuniPitanja() {
 }
 
 function ucitajLokalnaPitanja() {
-    ['balkan.json', 'cisco.json', 'ostalo.json'].forEach(f => {
+    const datoteke = ['balkan.json', 'cisco.json', 'ostalo.json'];
+    datoteke.forEach(f => {
         const p = PITANJA_FOLDER + f;
         if (fs.existsSync(p)) {
-            const s = JSON.parse(fs.readFileSync(p, 'utf8'));
-            for (let k in s) {
-                if (pitanjaPodaci[k]) pitanjaPodaci[k] = [...pitanjaPodaci[k], ...s[k]];
-                else pitanjaPodaci[k] = s[k];
-            }
+            try {
+                const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+                for (let k in s) {
+                    pitanjaPodaci[k] = [...(pitanjaPodaci[k] || []), ...s[k]];
+                }
+                console.log(`Učitano: ${f}`);
+            } catch (e) { console.log(`Greška u datoteci ${f}:`, e.message); }
         }
     });
 }
@@ -70,14 +72,16 @@ ucitajLokalnaPitanja();
 dopuniPitanja();
 setInterval(dopuniPitanja, 15 * 60 * 1000);
 
-// --- SOCKET LOGIKA ---
 let trenutnaPitanja = {};
 let tkoJePogodio = {};
 let intervaliOdbrojavanja = {};
 
 function posaljiNovoPitanje(soba) {
     const kat = pitanjaPodaci[soba];
-    if (!kat || kat.length === 0) return;
+    if (!kat || kat.length === 0) {
+        io.to(soba).emit('obavijest', { poruka: "⏳ Čekam da server pripremi pitanja...", tip: 'sustav' });
+        return;
+    }
     
     const p = kat[Math.floor(Math.random() * kat.length)];
     trenutnaPitanja[soba] = p;
@@ -88,10 +92,10 @@ function posaljiNovoPitanje(soba) {
     if (intervaliOdbrojavanja[soba]) clearInterval(intervaliOdbrojavanja[soba]);
     intervaliOdbrojavanja[soba] = setInterval(() => {
         tajmer--;
-        if (tajmer === 15 || tajmer <= 5) io.to(soba).emit('obavijest', { poruka: `⏳ ${tajmer}s`, tip: 'tajmer' });
+        if (tajmer === 15 || tajmer <= 5) io.to(soba).emit('obavijest', { poruka: `⏱️ ${tajmer}s`, tip: 'tajmer' });
         if (tajmer <= 0) {
             clearInterval(intervaliOdbrojavanja[soba]);
-            io.to(soba).emit('obavijest', { poruka: `⌛ Odgovor: ${p.odgovor}`, tip: 'sustav' });
+            io.to(soba).emit('obavijest', { poruka: `⌛ Odgovor je bio: ${p.odgovor}`, tip: 'sustav' });
             setTimeout(() => posaljiNovoPitanje(soba), 4000);
         }
     }, 1000);
@@ -114,7 +118,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('slanje_odgovora', (data) => {
-        const soba = socket.trenutnaSoba; const akt = trenutnaPitanja[soba];
+        const soba = socket.trenutnaSoba; 
+        const akt = trenutnaPitanja[soba];
         if (!akt || !socket.ime || tkoJePogodio[soba].includes(socket.ime)) return;
 
         if (akt.odgovor.toLowerCase().trim() === data.tekst.toLowerCase().trim()) {
@@ -123,8 +128,10 @@ io.on('connection', (socket) => {
             korisnici[socket.ime].povijest.push({ iznos, kategorija: soba, vrijeme: Date.now() });
             tkoJePogodio[soba].push(socket.ime);
             fs.writeFileSync(BODOVI_FILE, JSON.stringify(korisnici, null, 2));
-            io.to(soba).emit('obavijest', { poruka: `✅ ${socket.ime} POGODIO! (+${iznos}b)`, tip: 'tocno' });
+            io.to(soba).emit('obavijest', { poruka: `✅ ${socket.ime} je POGODIO! (+${iznos}b)`, tip: 'tocno' });
             setTimeout(() => posaljiNovoPitanje(soba), 3000);
+        } else {
+            socket.emit('obavijest', { poruka: `❌ Netočno!`, tip: 'netocno' });
         }
     });
 });
