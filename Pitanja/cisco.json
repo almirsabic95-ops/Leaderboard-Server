@@ -1,3 +1,4 @@
+{
 "certifikati": [
     { "pitanje": "Koji port koristi SSH?", "odgovor": "22" },
     { "pitanje": "Koji je raspon Standard ACL lista?", "odgovor": "1-99" },
@@ -9,3 +10,4 @@
     { "pitanje": "Što je phishing?", "odgovor": "Vrsta cyber napada putem lažnih poruka" },
     { "pitanje": "Koji je osnovni dio računala koji obrađuje podatke?", "odgovor": "Procesor" }
   ]
+}

@@ -1,14 +1,1 @@
-<div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-white" id="kategorije-lista">
-    <button onclick="ulaziUSobu('kultura')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">🎨 Kultura</button>
-    <button onclick="ulaziUSobu('sport')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">⚽ Sport</button>
-    <button onclick="ulaziUSobu('povijest')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">📜 Povijest</button>
-    <button onclick="ulaziUSobu('zemljopis')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">🌍 Zemljopis</button>
-    <button onclick="ulaziUSobu('znanost')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">🧪 Znanost</button>
-    <button onclick="ulaziUSobu('film')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">🎬 Film</button>
-    <button onclick="ulaziUSobu('glazba')" class="p-4 bg-slate-900 rounded-2xl border border-slate-800 hover:border-blue-500">🎵 Glazba</button>
-    
-    <div id="admin-section" class="col-span-2 md:col-span-3 hidden space-y-2 mt-2">
-        <button onclick="ulaziUSobu('balkan')" class="w-full p-4 bg-orange-600/10 border border-orange-600/30 text-orange-500 rounded-2xl font-bold uppercase italic hover:bg-orange-600/20">🔥 BALKAN EXPRESS</button>
-        <button onclick="ulaziUSobu('cisco')" class="w-full p-4 bg-blue-600/10 border border-blue-600/30 text-blue-400 rounded-2xl font-bold uppercase italic hover:bg-blue-600/20">🛡️ CISCO ACL STUDY</button>
-    </div>
-</div>
+{}
